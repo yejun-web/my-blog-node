@@ -1,0 +1,53 @@
+/**
+ * Module dependencies
+ */
+const app = require('../app')
+const CONFIG = require('../config/app.config')
+const http = require('http')
+
+const port = normalizePort(process.argv[2] || CONFIG.APPPORT)
+app.set('port', port)
+
+/**
+ * Create HTTP server
+ */
+const server = http.createServer(app)
+server.listen(port)
+server.on('error', onError)
+server.on('listening', onListening)
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error
+    }
+    var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges')
+            process.exit(1)
+            break
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use')
+            process.exit(1)
+            break
+        default:
+            throw error
+    }
+}
+
+function onListening() {
+    const port = server.address().port
+    console.log('服务启动成功：' + CONFIG.APPHOST + port)
+}
+
+// 端口号格式化校验
+function normalizePort(value) {
+    const port = parseInt(value, 10)
+    if (isNaN(port)) {
+        return value
+    }
+    if (port >= 0) {
+        return port
+    }
+    return false
+}
