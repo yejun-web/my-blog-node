@@ -9,4 +9,6 @@ module.exports = {
     PASSWORD: 'root',
     HOST: 'localhost',
     PORT: 3306,
+    SECRECTKEY: 'secret', // token编码私钥字符串
+    EXPRIESIN: '10h', // token有效期
 }

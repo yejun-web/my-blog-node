@@ -1,7 +1,6 @@
 const path = require('path')
 const express = require('express')
 const bodyParser = require('body-parser')
-
 const app = express()
 
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -36,11 +35,23 @@ app.use('/', express.static('./'))
  */
 app.all('*', function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*')
-    res.header('Access-Control-Allow-Methods', '*')
-    res.header('Access-Control-Allow-Headers', 'Content-Type')
     res.header('Content-Type', 'application/json;charset=utf-8')
-    next()
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With, Token')
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With, Authorization')
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With, X_Requested_With')
+    res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,DELETE,OPTIONS')
+    if (req.method == 'OPTIONS') res.send(200)
+    /* 设置options请求快速返回 */ next()
 })
+
+/**
+ * passport 验证策略
+ */
+var admin_passport = require('./utils/passport')
+admin_passport.initialize(app)
+app.use('/login', admin_passport.login)
+// 去除部分接口验证
+app.use(/^(?!.*(list|register)).*$/, admin_passport.tokenVerify)
 
 /**
  * 路由加载

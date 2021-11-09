@@ -78,7 +78,7 @@ router.post('/set', (req, res) => {
             categoryId: req.body.categoryId,
         })
         .then(() => {
-            res.sendResult(200, null, 'add success')
+            res.sendResult(200, null, '新增成功')
         })
         .catch((error) => {
             res.sendResult(502, null, error.parent.sqlMessage)
@@ -103,7 +103,7 @@ router.post('/set', (req, res) => {
             }
         )
         .then(() => {
-            res.sendResult(200, null, 'edit success')
+            res.sendResult(200, null, '修改成功')
         })
         .catch((error) => {
             res.sendResult(502, null, error.parent.sqlMessage)
