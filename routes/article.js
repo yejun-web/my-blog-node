@@ -121,7 +121,7 @@ router.post('/delete/:id', (req, res) => {
         },
     })
     .then(() => {
-        res.sendResult(200, null, 'delete success')
+        res.sendResult(200, null, '删除成功')
     })
     .catch((error) => {
         res.sendResult(502, null, error.parent.sqlMessage)

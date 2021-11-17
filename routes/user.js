@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const User = require('../models/userModel')
+const Role = require('../models/roleModel')
 const md5 = require('../utils/md5')
 
 /**
@@ -72,31 +73,37 @@ router.post('/setInfo', async (req, res) => {
 /**
  * 获取用户信息
  */
-router.post('/getInfo', (req, res) => {
-    User.findOne({
+router.post('/getInfo', async (req, res) => {
+    const userDataResult = await User.findOne({
         where: {
             id: req.userInfo.uid,
         },
     })
-    .then((data) => {
-        const { id, username, role } = data
-        res.sendResult(null, 200, {
-            id,
-            username,
-            role,
-        })
+    const { id, username, role } = userDataResult
+    const roleDataResult = await Role.findOne({
+        where: {
+            roleId: role,
+        }, 
     })
-    .catch((error) => {
-        res.sendResult(502, null, error.parent.sqlMessage || error)
+    const { roleName } = roleDataResult
+    res.sendResult(null, 200, {
+        id,
+        username,
+        roleName
     })
 })
 
 
 /**
  * 获取用户列表
+ * @param current    [Number] 当前页数
+ * @param pageSize   [Number] 分页大小
  */
 router.post('/list', (req, res) => {
-    User.findAll()
+    User.findAll({
+        offset: (req.body.current - 1) * req.body.pageSize,
+        limit: req.body.pageSize,
+    })
     .then((data) => {
         res.sendResult(null, 200, data)
     })

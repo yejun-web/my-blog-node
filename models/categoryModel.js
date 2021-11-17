@@ -4,7 +4,10 @@ const sequelize = require('./database')
 const Category = sequelize.define(
     'category',
     {
-        categoryId: DataTypes.INTEGER, // 分类id
+        categoryId: { // 分类id
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+        },
         categoryName: DataTypes.STRING, // 分类名称
     },
     { tableName: 'category' }
