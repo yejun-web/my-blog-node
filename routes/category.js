@@ -13,7 +13,7 @@ router.post('/list', (req, res) => {
         limit: req.body.pageSize,
     })
     .then((data) => {
-        res.sendResult(null, 200, data)
+        res.sendResult(200, data, null)
     })
     .catch((error) => {
         res.sendResult(502, null, error.parent.sqlMessage || error)
