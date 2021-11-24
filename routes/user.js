@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
         res.sendResult(200, null, '新增成功')
     })
     .catch((error) => {
-        res.sendResult(502, null, error.parent.sqlMessage || error)
+        res.sendResult(502, null, error.parent && error.parent.sqlMessage || error)
     })
 })
 
@@ -53,8 +53,10 @@ router.post('/setInfo', async (req, res) => {
     User.update(
         {
             username,
-            password: md5(password),
             role,
+            ... password && {
+                password: md5(password),
+            }
         },
         {
             where: {
@@ -66,7 +68,7 @@ router.post('/setInfo', async (req, res) => {
         res.sendResult(200, null, '修改成功')
     })
     .catch((error) => {
-        res.sendResult(502, null, error.parent.sqlMessage || error)
+        res.sendResult(502, null, error.parent && error.parent.sqlMessage || error)
     })
 })
 
@@ -86,7 +88,7 @@ router.post('/getInfo', async (req, res) => {
         }, 
     })
     const { roleName } = roleDataResult
-    res.sendResult(null, 200, {
+    res.sendResult(200, {
         id,
         username,
         roleName
@@ -100,15 +102,53 @@ router.post('/getInfo', async (req, res) => {
  * @param pageSize   [Number] 分页大小
  */
 router.post('/list', (req, res) => {
-    User.findAll({
+    User.findAndCountAll({
         offset: (req.body.current - 1) * req.body.pageSize,
         limit: req.body.pageSize,
     })
-    .then((data) => {
-        res.sendResult(null, 200, data)
+    .then(async ({ count, rows }) => {
+        // 获取所有角色
+        let roleList = await Role.findAll()
+        let roleMap = new Map()
+        roleList.forEach((item) => {
+            roleMap.set(item.roleId, item.roleName)
+        })
+        let _rows = []
+        rows.forEach(item => {
+            _rows.push({
+                id: item.id,
+                username: item.username,
+                roleId: item.role,
+                roleName: roleMap.get(item.role)
+            })
+        })
+        res.sendResult(200, {
+            records: _rows,
+            current: req.body.current,
+            pageSize: req.body.pageSize,
+            total: count,
+        })
     })
     .catch((error) => {
-        res.sendResult(502, null, error.parent.sqlMessage || error)
+        res.sendResult(502, null, error.parent && error.parent.sqlMessage || error)
+    })
+})
+
+
+/**
+ * 删除用户
+ */
+router.post('/delete/:id', (req, res) => {
+    User.destroy({
+        where: {
+            id: req.params.id,
+        },
+    })
+    .then(() => {
+        res.sendResult(200, null, '删除成功')
+    })
+    .catch((error) => {
+        res.sendResult(502, null, error.parent && error.parent.sqlMessage || error)
     })
 })
 

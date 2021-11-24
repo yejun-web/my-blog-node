@@ -8,15 +8,20 @@ const Role = require('../models/roleModel')
  * @param pageSize   [Number] 分页大小
  */
 router.post('/list', (req, res) => {
-    Role.findAll({
+    Role.findAndCountAll({
         offset: (req.body.current - 1) * req.body.pageSize,
         limit: req.body.pageSize,
     })
-    .then((data) => {
-        res.sendResult(200, data, null)
+    .then(({ count, rows }) => {
+        res.sendResult(200, {
+            records: rows,
+            current: req.body.current,
+            pageSize: req.body.pageSize,
+            total: count,
+        })
     })
     .catch((error) => {
-        res.sendResult(502, null, error.parent.sqlMessage || error)
+        res.sendResult(502, null, error.parent && error.parent.sqlMessage || error)
     })
 })
 

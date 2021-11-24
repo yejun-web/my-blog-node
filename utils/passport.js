@@ -65,7 +65,7 @@ module.exports.login = (req, res, next) => {
         if (err) return res.sendResult(201, null, err)
         if (!user) return res.sendResult(201, null, '参数错误')
         const token = jwt.sign({ uid: user.id }, CONFIG.SECRECTKEY, { expiresIn: CONFIG.EXPRIESIN })
-        return res.sendResult(201, 'Bearer ' + token, '登录成功')
+        return res.sendResult(200, 'Bearer ' + token, '登录成功')
     })(req, res, next)
 }
 
