@@ -51,7 +51,7 @@ var admin_passport = require('./utils/passport')
 admin_passport.initialize(app)
 app.use('/login', admin_passport.login)
 // 去除部分接口验证
-app.use(/^(?!.*(list|register)).*$/, admin_passport.tokenVerify)
+app.use(/^(?!.*(list|register|upload)).*$/, admin_passport.tokenVerify)
 
 /**
  * 路由加载
