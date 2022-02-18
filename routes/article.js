@@ -2,25 +2,31 @@ const express = require('express')
 const router = express.Router()
 const { Op } = require('sequelize')
 const Article = require('../models/articleModel')
-const Tag = require('../models/tagModel')
+const Category = require('../models/categoryModel')
 
 /**
  * 获取文章分页
- * @param current    [Number] 当前页数
- * @param pageSize   [Number] 分页大小
- * @param categoryId [Number] 文章分类id
- * @param tagId      [Number] 文章标签id
+ * @param current      [Number] 当前页数
+ * @param pageSize     [Number] 分页大小
+ * @param categoryName [Number] 分类名称
+ * @param tagName      [Number] 标签名称
  */
 router.post('/list', async (req, res) => {
     let { count, rows } = await Article.findAndCountAll({
         offset: (req.body.current - 1) * req.body.pageSize,
         limit: req.body.pageSize,
         where: {
-            ...(req.body.categoryId ? { categoryId: req.body.categoryId } : ''),
-            ...(req.body.tagId
+            ...(req.body.categoryName
+                ? {
+                    categoryName: {
+                          [Op.like]: `%${req.body.categoryName}%`,
+                      },
+                  }
+                : ''),
+            ...(req.body.tagName
                 ? {
                       tags: {
-                          [Op.like]: `%${req.body.tagId}%`,
+                          [Op.like]: `%${req.body.tagName}%`,
                       },
                   }
                 : ''),
@@ -28,21 +34,11 @@ router.post('/list', async (req, res) => {
         order: [['id', 'DESC']],
     })
     // 获取标签名称
-    let _rows = JSON.parse(JSON.stringify(rows))
-    let tagList = await Tag.findAll()
-    let tagMap = new Map()
-    tagList.forEach((item) => {
-        tagMap.set(item.tagId, item.tagName)
-    })
-    _rows.forEach((item) => {
-        item['tagsName'] = new Array()
-        if (item.tags) {
-            item.tags.split(',').forEach((item2) => {
-                if (tagMap.get(parseInt(item2))) {
-                    item['tagsName'].push(tagMap.get(parseInt(item2)))
-                }
-            })
+    let _rows = rows.map(item => {
+        if (item['tags']) {
+            item['tags'] = item['tags'].split(',')
         }
+        return item
     })
     res.sendResult(200, {
         records: _rows,
@@ -64,7 +60,10 @@ router.post('/list', async (req, res) => {
  * @param tags       [String] 标签
  * @param categoryId [Number] 分类
  */
-router.post('/set', (req, res) => {
+router.post('/set', async (req, res) => {
+    const { categoryName } = await Category.findOne({
+        where: { categoryId: req.body.categoryId },
+    })
     if (!req.body.id) {
         // 新增文章
         Article.create({
@@ -74,14 +73,15 @@ router.post('/set', (req, res) => {
             createTime: req.body.createTime,
             updateTime: req.body.updateTime,
             imgUrl: req.body.imgUrl,
-            tags: req.body.tags,
+            tags: req.body.tags.join(','),
             categoryId: req.body.categoryId,
+            categoryName,
         })
         .then(() => {
             res.sendResult(200, null, '新增成功')
         })
         .catch((error) => {
-            res.sendResult(502, null, error.parent.sqlMessage)
+            res.sendResult(502, null, error.parent.sqlMessage || error)
         })
     } else {
         // 编辑文章
@@ -93,8 +93,9 @@ router.post('/set', (req, res) => {
                 createTime: req.body.createTime,
                 updateTime: req.body.updateTime,
                 imgUrl: req.body.imgUrl,
-                tags: req.body.tags,
+                tags: req.body.tags.join(','),
                 categoryId: req.body.categoryId,
+                categoryName,
             },
             {
                 where: {
@@ -106,7 +107,7 @@ router.post('/set', (req, res) => {
             res.sendResult(200, null, '修改成功')
         })
         .catch((error) => {
-            res.sendResult(502, null, error.parent.sqlMessage)
+            res.sendResult(502, null, error.parent.sqlMessage || error)
         })
     }
 })
@@ -124,7 +125,7 @@ router.post('/delete/:id', (req, res) => {
         res.sendResult(200, null, '删除成功')
     })
     .catch((error) => {
-        res.sendResult(502, null, error.parent.sqlMessage)
+        res.sendResult(502, null, error.parent.sqlMessage || error)
     })
 })
 

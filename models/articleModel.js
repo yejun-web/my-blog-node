@@ -16,6 +16,7 @@ const Article = sequelize.define(
         imgUrl: DataTypes.STRING, // 预览图片
         tags: DataTypes.STRING, // 文章标签
         categoryId: DataTypes.INTEGER, // 分类id
+        categoryName: DataTypes.STRING, // 分类名称
     },
     { tableName: 'article' }
 )
